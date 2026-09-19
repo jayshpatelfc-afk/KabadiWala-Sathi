@@ -36,26 +36,5 @@
 			"isBackground": true,
 			"group": "build"
 		},
-		{
-			"label": "Publish merged app",
-			"type": "shell",
-			"command": "git status --short; git log --oneline --decorate --all -5; git push -u origin main",
-			"isBackground": false,
-			"problemMatcher": []
-		},
-		{
-			"label": "Merge remote history",
-			"type": "shell",
-			"command": "git merge origin/main --allow-unrelated-histories --no-edit",
-			"isBackground": false,
-			"problemMatcher": []
-		},
-		{
-			"label": "Finish GitHub merge",
-			"type": "shell",
-			"command": "git checkout --ours .gitignore README.md; git add -A; git commit -m Merge-GitHub-history; git push -u origin main",
-			"isBackground": false,
-			"problemMatcher": []
-		}
 	]
 }
