@@ -2,16 +2,58 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Commit and connect GitHub",
+			"label": "Install dependencies",
 			"type": "shell",
-			"command": "git add -A; git commit -m \"Prepare app for deployment\"; git branch -M main; git remote add origin https://github.com/jayshpatelfc-afk/KabadiWala-Sathi.git; git remote -v",
+			"command": "npm.cmd install --include=dev",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Build app",
+			"type": "shell",
+			"command": "npm.cmd run build",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Run backend API",
+			"type": "shell",
+			"command": "node server/server.js",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Run backend API",
+			"type": "shell",
+			"command": "node server/server.js",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Run frontend dev server",
+			"type": "shell",
+			"command": "npm.cmd run dev -- --host 127.0.0.1",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Publish merged app",
+			"type": "shell",
+			"command": "git status --short; git log --oneline --decorate --all -5; git push -u origin main",
 			"isBackground": false,
 			"problemMatcher": []
 		},
 		{
-			"label": "Commit application",
+			"label": "Merge remote history",
 			"type": "shell",
-			"command": "git add -A; git status --short; git commit -m Prepare-app-for-deployment; git branch -M main; git log -1 --oneline",
+			"command": "git merge origin/main --allow-unrelated-histories --no-edit",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Finish GitHub merge",
+			"type": "shell",
+			"command": "git checkout --ours .gitignore README.md; git add -A; git commit -m Merge-GitHub-history; git push -u origin main",
 			"isBackground": false,
 			"problemMatcher": []
 		}
