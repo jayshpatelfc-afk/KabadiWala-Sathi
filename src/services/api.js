@@ -17,7 +17,15 @@ async function request(path, options = {}) {
   }
 
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || `Request failed (${response.status})`);
+  if (!response.ok) {
+    let errorMessage = `Request failed (${response.status})`;
+    if (body.error) {
+      errorMessage = typeof body.error === 'string' ? body.error : (body.error.message || JSON.stringify(body.error));
+    } else if (body.message) {
+      errorMessage = typeof body.message === 'string' ? body.message : JSON.stringify(body.message);
+    }
+    throw new Error(errorMessage);
+  }
   return body;
 }
 
