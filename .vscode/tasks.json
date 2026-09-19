@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Commit and connect GitHub",
+			"type": "shell",
+			"command": "git add -A; git commit -m \"Prepare app for deployment\"; git branch -M main; git remote add origin https://github.com/jayshpatelfc-afk/KabadiWala-Sathi.git; git remote -v",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit application",
+			"type": "shell",
+			"command": "git add -A; git status --short; git commit -m Prepare-app-for-deployment; git branch -M main; git log -1 --oneline",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

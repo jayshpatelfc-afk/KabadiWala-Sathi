@@ -1,0 +1,9 @@
+node_modules/
+dist/
+server/kabadiwala.db
+server/kabadiwala.db-shm
+server/kabadiwala.db-wal
+tmp-sqlite-check.db
+.env
+.env.*
+!.env.example

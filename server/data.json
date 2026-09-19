@@ -1,0 +1,108 @@
+{
+  "prices": [
+    {
+      "id": "pcb",
+      "name": "Printed Circuit Boards (PCB)",
+      "hiName": "सर्किट बोर्ड (PCB)",
+      "price": 350,
+      "unit": "kg",
+      "trend": "+9.3%"
+    },
+    {
+      "id": "cable",
+      "name": "Copper Cables & Wires",
+      "hiName": "तांबे का तार (Cables)",
+      "price": 420,
+      "unit": "kg",
+      "trend": "+2.1%"
+    },
+    {
+      "id": "battery",
+      "name": "Lithium-Ion Batteries",
+      "hiName": "लिथियम बैटरी (Batteries)",
+      "price": 340,
+      "unit": "kg",
+      "trend": "-1.5%"
+    },
+    {
+      "id": "mobile",
+      "name": "Smartphones / Mobiles",
+      "hiName": "पुराना मोबाइल (Mobiles)",
+      "price": 180,
+      "unit": "pc",
+      "trend": "+5.0%"
+    }
+  ],
+  "recyclers": [
+    {
+      "id": "REC-101",
+      "name": "EcoGreen Recyclers Ltd.",
+      "dist": "3.2 km",
+      "priceMul": 1.02,
+      "verified": true,
+      "pickup": true
+    },
+    {
+      "id": "REC-102",
+      "name": "Maha Metal Recovery Plant",
+      "dist": "7.8 km",
+      "priceMul": 1.05,
+      "verified": true,
+      "pickup": false
+    }
+  ],
+  "lots": [
+    {
+      "lotId": "EW-2026-001245",
+      "materialId": "pcb",
+      "material": "Printed Circuit Boards (PCB)",
+      "weight": 12,
+      "estimatedVal": 4200,
+      "collectorName": "Ramesh Kumar",
+      "status": "Completed",
+      "createdAt": "2026-09-05T10:00:00.000Z",
+      "synced": true,
+      "updatedAt": "2026-09-06T14:27:42.829Z",
+      "paidAt": "2026-09-06T14:27:42.829Z"
+    },
+    {
+      "lotId": "EW-2026-817899",
+      "materialId": "pcb",
+      "material": "Printed Circuit Boards (PCB)",
+      "weight": 234,
+      "estimatedVal": 81900,
+      "collectorName": "Local Collector",
+      "status": "Completed",
+      "createdAt": "2026-09-06T14:19:42.920Z",
+      "synced": true,
+      "updatedAt": "2026-09-06T14:27:42.352Z",
+      "paidAt": "2026-09-06T14:27:42.352Z"
+    },
+    {
+      "lotId": "EW-2026-226598",
+      "materialId": "pcb",
+      "material": "Printed Circuit Boards (PCB)",
+      "weight": 1,
+      "estimatedVal": 350,
+      "collectorName": "Local Collector",
+      "status": "Completed",
+      "createdAt": "2026-09-06T14:23:34.790Z",
+      "synced": true,
+      "updatedAt": "2026-09-06T14:27:42.100Z",
+      "paidAt": "2026-09-06T14:27:42.100Z"
+    },
+    {
+      "lotId": "EW-2026-727233",
+      "materialId": "mobile",
+      "material": "Smartphones / Mobiles",
+      "weight": 3,
+      "estimatedVal": 540,
+      "collectorName": "Local Collector",
+      "status": "Completed",
+      "createdAt": "2026-09-06T14:27:36.920Z",
+      "synced": true,
+      "updatedAt": "2026-09-06T14:27:40.539Z",
+      "paidAt": "2026-09-06T14:27:40.539Z"
+    }
+  ]
+}
