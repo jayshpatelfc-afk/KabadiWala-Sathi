@@ -1,5 +1,5 @@
 {
-  "name": "kabadiwala-connect",
+  "name": "kabadiwala-connect",      
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,6 +10,7 @@
     "dev": "vite",
     "server": "node server/server.js",
     "build": "vite build",
+    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {

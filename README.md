@@ -73,7 +73,7 @@ Lot becomes Completed and analytics update
 
 Requirements:
 
-- Node.js 22.5 or newer (the backend uses the built-in `node:sqlite` module)
+- Node.js 22.5.0 or newer (the backend utilizes the built-in `node:sqlite` module)
 - npm
 
 Install dependencies:

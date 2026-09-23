@@ -3,6 +3,9 @@ dist/
 server/kabadiwala.db
 server/kabadiwala.db-shm
 server/kabadiwala.db-wal
+*.db
+*.db-shm
+*.db-wal
 tmp-sqlite-check.db
 .env
 .env.*

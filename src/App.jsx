@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Header from "./components/Header";
 import OfflineBanner from "./components/OfflineBanner";
-import CollectorView from "./components/CollectorView";
-import RecyclerView from "./components/RecyclerView";
-import AuthorityView from "./components/AuthorityView";
+import CollectorView from "./components/collector/CollectorView";
+import RecyclerView from "./components/recycler/RecyclerView";
+import AuthorityView from "./components/authority/AuthorityView";
 
 export default function App() {
   const [activeRole, setActiveRole] = useState("collector");
@@ -31,7 +31,7 @@ export default function App() {
 
         {activeRole === "recycler" && <RecyclerView />}
 
-        {activeRole === "authority" && <AuthorityView />}
+        {activeRole === "authority" && <AuthorityView offlineSyncQueue={offlineSyncQueue} />}
       </main>
     </div>
   );

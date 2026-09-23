@@ -20,9 +20,15 @@ async function request(path, options = {}) {
   if (!response.ok) {
     let errorMessage = `Request failed (${response.status})`;
     if (body.error) {
-      errorMessage = typeof body.error === 'string' ? body.error : (body.error.message || JSON.stringify(body.error));
+      errorMessage =
+        typeof body.error === "string"
+          ? body.error
+          : body.error.message || JSON.stringify(body.error);
     } else if (body.message) {
-      errorMessage = typeof body.message === 'string' ? body.message : JSON.stringify(body.message);
+      errorMessage =
+        typeof body.message === "string"
+          ? body.message
+          : JSON.stringify(body.message);
     }
     throw new Error(errorMessage);
   }
@@ -38,7 +44,11 @@ export const api = {
   getLots: (status) => request(`/lots${status ? `?status=${encodeURIComponent(status)}` : ""}`),
   getLotById: (lotId) => request(`/lots/${encodeURIComponent(lotId)}`),
   createLot: (payload) => request("/lots", { method: "POST", body: JSON.stringify(payload) }),
-  updateLotStatus: (lotId, status) => request(`/lots/${encodeURIComponent(lotId)}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateLotStatus: (lotId, status) =>
+    request(`/lots/${encodeURIComponent(lotId)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status })
+    }),
   deleteLot: (lotId) => request(`/lots/${encodeURIComponent(lotId)}`, { method: "DELETE" }),
   getAnalytics: () => request("/analytics")
 };

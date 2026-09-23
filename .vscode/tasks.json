@@ -6,6 +6,7 @@
 			"type": "shell",
 			"command": "npm.cmd install --include=dev",
 			"isBackground": false,
+			"problemMatcher": [],
 			"group": "build"
 		},
 		{
@@ -13,6 +14,7 @@
 			"type": "shell",
 			"command": "npm.cmd run build",
 			"isBackground": false,
+			"problemMatcher": [],
 			"group": "build"
 		},
 		{
@@ -20,13 +22,7 @@
 			"type": "shell",
 			"command": "node server/server.js",
 			"isBackground": true,
-			"group": "build"
-		},
-		{
-			"label": "Run backend API",
-			"type": "shell",
-			"command": "node server/server.js",
-			"isBackground": true,
+			"problemMatcher": [],
 			"group": "build"
 		},
 		{
@@ -34,7 +30,8 @@
 			"type": "shell",
 			"command": "npm.cmd run dev -- --host 127.0.0.1",
 			"isBackground": true,
+			"problemMatcher": [],
 			"group": "build"
-		},
+		}
 	]
 }

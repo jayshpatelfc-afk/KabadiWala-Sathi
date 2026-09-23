@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Camera, DollarSign, AlertTriangle, TrendingUp, Volume2, QrCode, CheckCircle2, ShieldCheck, ScanLine, Upload, X } from "lucide-react";
-import { MOCK_PRICES, MOCK_RECYCLERS } from "../services/mockData";
-import { speakText } from "../services/speechService";
-import { api } from "../services/api";
-import { detectMaterial } from "../services/materialScanner";
+import { Camera, DollarSign, AlertTriangle, TrendingUp, Volume2, QrCode, CheckCircle2, ShieldCheck, ScanLine, Upload, X, RefreshCw } from "lucide-react";
+import { MOCK_PRICES, MOCK_RECYCLERS } from "../../services/mockData";
+import { speakText } from "../../services/speechService";
+import { api } from "../../services/api";
+import { detectMaterial } from "../../services/materialScanner";
+import { printLotReceipt } from "../../services/receiptService";
+import { showBrowserNotification } from "../../services/notifications";
 
 export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
   const [activeTab, setActiveTab] = useState("add");
@@ -12,14 +14,30 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
   const [scannedMaterial, setScannedMaterial] = useState(MOCK_PRICES[0]);
   const [weight, setWeight] = useState("");
   const [createdLot, setCreatedLot] = useState(null);
+  const [ledgerLots, setLedgerLots] = useState([]);
   const [error, setError] = useState("");
   const [scanPreview, setScanPreview] = useState("");
   const [scanConfidence, setScanConfidence] = useState(89);
   const [scanReason, setScanReason] = useState("Choose a clear photo for automatic detection");
   const [isScanning, setIsScanning] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [isRefreshingLedger, setIsRefreshingLedger] = useState(false);
   const videoRef = useRef(null);
   const cameraStreamRef = useRef(null);
+
+  const loadLedger = () => {
+    setError("");
+    setIsRefreshingLedger(true);
+    api
+      .getLots()
+      .then((lots) => {
+        const completedLots = lots.filter((lot) => lot.status === "Completed");
+        setLedgerLots(completedLots);
+      })
+      .catch((requestError) => setError(requestError.message))
+      .finally(() => setIsRefreshingLedger(false));
+  };
 
   useEffect(() => {
     if (!isOnline) return;
@@ -31,6 +49,12 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
       })
       .catch(() => setError("Backend unavailable. You can still create an offline lot."));
   }, [isOnline]);
+
+  useEffect(() => {
+    if (activeTab === "ledger") {
+      loadLedger();
+    }
+  }, [activeTab]);
 
   useEffect(() => () => {
     cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -110,7 +134,12 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
       setOfflineSyncQueue((prev) => [...prev, lotPayload]);
     }
     setCreatedLot(lotPayload);
+    setShowSuccessPopup(true);
     speakText(`लॉट बन गया है। अनुमानित मूल्य ₹${estVal} है।`);
+    await showBrowserNotification(
+      "Lot Created",
+      `Lot ${lotPayload.lotId} created successfully for ${lotPayload.material}.`
+    );
   };
 
   return (
@@ -200,17 +229,28 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
                   <Camera className="w-6 h-6" />
                 </div>
               )}
-              <button type="button" onClick={openCamera} className="text-xs font-bold text-slate-700 flex items-center gap-1 hover:text-emerald-700">
-                {isScanning ? <ScanLine className="w-3.5 h-3.5 animate-pulse" /> : <Camera className="w-3.5 h-3.5" />}
-                {isScanning ? "स्कैन हो रहा है..." : "AI Material Scanner खोलें"}
-              </button>
-              <label className="mt-1 text-[11px] text-emerald-700 font-semibold cursor-pointer hover:underline">
-                <Upload className="w-3 h-3 inline mr-1" />Upload Photo
-                <input type="file" accept="image/*" className="sr-only" onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) handleScan(file);
-                }} />
-              </label>
+              <div className="mt-3 flex w-full gap-2">
+                <button
+                  type="button"
+                  onClick={openCamera}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 py-2.5 text-xs font-bold text-slate-950 shadow-sm hover:bg-emerald-600"
+                >
+                  {isScanning ? <ScanLine className="w-4 h-4 animate-pulse" /> : <Camera className="w-4 h-4" />}
+                  {isScanning ? "स्कैन हो रहा है..." : "AI Material Scan"}
+                </button>
+
+                <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                  <Upload className="w-4 h-4" />
+                  Upload Photo
+                  <input type="file" accept="image/*" className="sr-only" onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) handleScan(file);
+                  }} />
+                </label>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Detected: <span className="font-semibold text-slate-900">{scannedMaterial.hiName}</span> ({scanConfidence}% confidence)
+              </p>
               <p className="text-[10px] text-slate-500 mt-1">{scanReason} • Tap to retake</p>
             </div>
 
@@ -271,7 +311,50 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
             </form>
           </div>
 
-          {createdLot && (
+          {showSuccessPopup && createdLot && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-emerald-200 bg-white p-5 shadow-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-emerald-600 font-bold">Success</p>
+                <h3 className="text-lg font-black text-slate-900">Lot Created</h3>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-600 leading-6">
+              Lot <span className="font-bold text-slate-900">{createdLot.lotId}</span> was created successfully.
+            </p>
+
+            <div className="mt-4 space-y-2 rounded-xl bg-emerald-50 p-3 text-sm text-slate-700 border border-emerald-100">
+              <p><span className="font-bold">Material:</span> {createdLot.material}</p>
+              <p><span className="font-bold">Weight:</span> {createdLot.weight} kg</p>
+              <p><span className="font-bold">Value:</span> ₹{createdLot.estimatedVal}</p>
+            </div>
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => printLotReceipt(createdLot)}
+                className="flex-1 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-sm hover:bg-emerald-600"
+              >
+                Download Receipt
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSuccessPopup(false)}
+                className="flex-1 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {createdLot && (
             <div className="bg-emerald-950 text-white p-4 rounded-2xl shadow-md border border-emerald-800 space-y-3">
               <div className="flex justify-between items-start border-b border-emerald-800/80 pb-2">
                 <div>
@@ -294,6 +377,16 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
                   <p className="text-emerald-400/70 text-[10px]">Est. Value</p>
                   <p className="font-bold text-sm">₹{createdLot.estimatedVal}</p>
                 </div>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => printLotReceipt(createdLot)}
+                  className="flex-1 bg-white/10 border border-white/20 text-white font-bold py-2.5 rounded-xl"
+                >
+                  Download PDF Receipt
+                </button>
               </div>
 
               <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2">
@@ -320,41 +413,48 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
           <div className="flex items-center justify-between border-b pb-2">
             <h2 className="font-bold text-slate-900 text-sm">💰 मेरी कमाई (Earnings History)</h2>
-            <span className="text-xs text-emerald-600 font-bold">Sept 2026</span>
+            <button
+              type="button"
+              onClick={loadLedger}
+              disabled={isRefreshingLedger}
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw className={`w-3 h-3 ${isRefreshingLedger ? "animate-spin" : ""}`} />
+              {isRefreshingLedger ? "Loading" : "Refresh"}
+            </button>
           </div>
 
           <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex justify-between items-center">
             <div>
               <p className="text-xs text-slate-500">कुल भुगतान प्राप्त (Total Received)</p>
-              <p className="text-xl font-black text-slate-900">₹16,460</p>
+              <p className="text-xl font-black text-slate-900">₹{ledgerLots.reduce((total, lot) => total + Number(lot.estimatedVal || 0), 0).toLocaleString("en-IN")}</p>
             </div>
             <span className="text-xs bg-emerald-200 text-emerald-800 font-bold px-2 py-1 rounded-md">
-              UPI / Cash
+              Live
             </span>
           </div>
 
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between p-2.5 bg-slate-50 rounded-lg">
-              <div>
-                <p className="font-bold text-slate-800">PCB Lot #EW-2026-90412</p>
-                <p className="text-[10px] text-slate-400">18.5 kg • Handover Completed</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-emerald-600">₹6,660</p>
-                <span className="text-[9px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">Paid</span>
-              </div>
-            </div>
+          {error && <p className="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>}
 
-            <div className="flex justify-between p-2.5 bg-slate-50 rounded-lg">
-              <div>
-                <p className="font-bold text-slate-800">Cable Wires Lot #EW-2026-88120</p>
-                <p className="text-[10px] text-slate-400">10 kg • Handover Completed</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-emerald-600">₹4,200</p>
-                <span className="text-[9px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">Paid</span>
-              </div>
-            </div>
+          <div className="space-y-2 text-xs">
+            {ledgerLots.length === 0 ? (
+              <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                No completed lots yet. Newly closed lots will appear here.
+              </p>
+            ) : (
+              ledgerLots.map((lot) => (
+                <div key={lot.lotId} className="flex justify-between p-2.5 bg-slate-50 rounded-lg gap-2">
+                  <div>
+                    <p className="font-bold text-slate-800">{lot.lotId}</p>
+                    <p className="text-[10px] text-slate-400">{lot.material} • {lot.weight} kg • Handover Completed</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-emerald-600">₹{Number(lot.estimatedVal || 0).toLocaleString("en-IN")}</p>
+                    <span className="text-[9px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">Paid</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -367,23 +467,35 @@ export default function CollectorView({ isOnline, setOfflineSyncQueue }) {
           </h2>
 
           <div className="space-y-2 text-xs">
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold text-red-800">🔥 तार जलाना सख्त मना है</p>
                 <p className="text-[11px] text-red-600">Do not burn cables. Severe toxic fumes hazard.</p>
               </div>
-              <button onClick={() => speakText("तार न जलाएं, यह जहरीला है")} className="text-red-700">
-                <Volume2 className="w-5 h-5" />
+              <button
+                type="button"
+                aria-label="Speak safety protocol for burning cables"
+                title="Speak safety tip"
+                onClick={() => speakText("तार न जलाएं, यह जहरीला है")}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+              >
+                <Volume2 className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-3">
               <div>
                 <p className="font-bold text-amber-800">🧪 एसिड का प्रयोग न करें</p>
                 <p className="text-[11px] text-amber-700">Do not use acid leaching at home.</p>
               </div>
-              <button onClick={() => speakText("धातु निकालने के लिए तेजाब का उपयोग न करें")} className="text-amber-700">
-                <Volume2 className="w-5 h-5" />
+              <button
+                type="button"
+                aria-label="Speak safety protocol for acid use"
+                title="Speak safety tip"
+                onClick={() => speakText("धातु निकालने के लिए तेजाब का उपयोग न करें")}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+              >
+                <Volume2 className="w-4 h-4" />
               </button>
             </div>
           </div>
